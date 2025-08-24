@@ -43,7 +43,7 @@ public class UsuarioController {
                         @ApiResponse(responseCode = "201", description = "Usuario registrado exitosamente", content = @Content(schema = @Schema(implementation = UsuarioResponse.class))),
                         @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
                         @ApiResponse(responseCode = "401", description = "No autenticado"),
-                        @ApiResponse(responseCode = "403", description = "No autorizado - Se requieren permisos de administrador o asesor"),
+                        @ApiResponse(responseCode = "403", description = "No autorizado"),
                         @ApiResponse(responseCode = "409", description = "El usuario ya existe"),
                         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
         })
