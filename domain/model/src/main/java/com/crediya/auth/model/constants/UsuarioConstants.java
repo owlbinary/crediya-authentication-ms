@@ -31,6 +31,9 @@ public final class UsuarioConstants {
     public static final String DOCUMENTO_REQUERIDO = "El campo 'documento_identidad' es obligatorio";
     public static final String DIRECCION_MAX_LENGTH = "200";
     public static final String DIRECCION_TAMANO_INVALIDO = "La dirección no puede exceder " + DIRECCION_MAX_LENGTH + CARACTERES_SUFIJO;
+    public static final String PASSWORD_REQUERIDO = "La contraseña es obligatoria";
+    public static final String PASSWORD_TAMANO_INVALIDO = "La contraseña debe tener entre 6 y 100 caracteres";
+
 
     private UsuarioConstants() {
     }

@@ -2,6 +2,7 @@ package com.crediya.auth.api.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,6 +39,7 @@ public class UsuarioController {
 
         @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
         @ResponseStatus(HttpStatus.CREATED)
+        @PreAuthorize("hasRole('ADMIN') or hasRole('ASESOR')")
         @Operation(summary = "Registrar nuevo usuario", description = "Registra un nuevo usuario en el sistema")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "201", description = "Usuario registrado exitosamente", content = @Content(schema = @Schema(implementation = UsuarioResponse.class))),
