@@ -1,6 +1,7 @@
 package com.crediya.auth.usecase;
 
 import com.crediya.auth.model.Usuario;
+import com.crediya.auth.model.exception.DocumentoYaExisteException;
 import com.crediya.auth.model.exception.UsuarioYaExisteException;
 import com.crediya.auth.model.gateway.PasswordEncryptionGateway;
 import com.crediya.auth.model.gateway.UsuarioGateway;
@@ -47,6 +48,8 @@ class RegistrarUsuarioUseCaseTest {
 
         when(usuarioRepository.existePorEmail(anyString()))
                 .thenReturn(Mono.just(false));
+        when(usuarioRepository.existePorDocumentoIdentidad(anyString()))
+                .thenReturn(Mono.just(false));
         when(passwordEncryptionGateway.encriptarPassword(anyString()))
                 .thenReturn(Mono.just("$2a$10$password1234"));
         when(usuarioRepository.guardar(any(Usuario.class)))
@@ -66,6 +69,8 @@ class RegistrarUsuarioUseCaseTest {
 
         when(usuarioRepository.existePorEmail(anyString()))
                 .thenReturn(Mono.just(true));
+        when(usuarioRepository.existePorDocumentoIdentidad(anyString()))
+                .thenReturn(Mono.just(false));
         when(passwordEncryptionGateway.encriptarPassword(anyString()))
                 .thenReturn(Mono.just("$2a$10$password1234"));
         StepVerifier.create(registrarUsuarioUseCase.ejecutar(usuario))
@@ -86,6 +91,8 @@ class RegistrarUsuarioUseCaseTest {
 
         when(usuarioRepository.existePorEmail(anyString()))
                 .thenReturn(Mono.just(false));
+        when(usuarioRepository.existePorDocumentoIdentidad(anyString()))
+                .thenReturn(Mono.just(false));
         when(passwordEncryptionGateway.encriptarPassword(anyString()))
                 .thenReturn(Mono.just("$2a$10$password1234"));
         when(usuarioRepository.guardar(any(Usuario.class)))
@@ -96,6 +103,22 @@ class RegistrarUsuarioUseCaseTest {
                     resultado.getFechaCreacion() != null &&
                     resultado.getFechaActualizacion() != null)
                 .verifyComplete();
+    }
+
+    @Test
+    void deberiaFallarCuandoDocumentoYaExiste() {
+        Usuario usuario = crearUsuarioValido();
+
+        when(usuarioRepository.existePorEmail(anyString()))
+                .thenReturn(Mono.just(false));
+        when(usuarioRepository.existePorDocumentoIdentidad(anyString()))
+                .thenReturn(Mono.just(true));
+        when(passwordEncryptionGateway.encriptarPassword(anyString()))
+                .thenReturn(Mono.just("$2a$10$password1234"));
+        
+        StepVerifier.create(registrarUsuarioUseCase.ejecutar(usuario))
+                .expectError(DocumentoYaExisteException.class)
+                .verify();
     }
 
     private Usuario crearUsuarioValido() {

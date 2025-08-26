@@ -124,6 +124,34 @@ class UsuarioRepositoryAdapterTest {
     }
 
     @Test
+    void deberiaVerificarExistenciaPorDocumentoCorrectamente() {
+        String documento = "1234567890";
+        when(usuarioR2dbcRepository.existsByDocumentoIdentidad(documento)).thenReturn(Mono.just(true));
+
+        Mono<Boolean> result = usuarioRepositoryAdapter.existePorDocumentoIdentidad(documento);
+
+        StepVerifier.create(result)
+                .expectNext(true)
+                .verifyComplete();
+
+        verify(usuarioR2dbcRepository).existsByDocumentoIdentidad(documento);
+    }
+
+    @Test
+    void deberiaRetornarFalsoCuandoDocumentoNoExiste() {
+        String documento = "9876543210";
+        when(usuarioR2dbcRepository.existsByDocumentoIdentidad(documento)).thenReturn(Mono.just(false));
+
+        Mono<Boolean> result = usuarioRepositoryAdapter.existePorDocumentoIdentidad(documento);
+
+        StepVerifier.create(result)
+                .expectNext(false)
+                .verifyComplete();
+
+        verify(usuarioR2dbcRepository).existsByDocumentoIdentidad(documento);
+    }
+
+    @Test
     void deberiaBuscarUsuarioPorEmailCorrectamente() {
         String email = "test@test.com";
         UsuarioEntity entidad = crearUsuarioEntityTest();
@@ -215,6 +243,22 @@ class UsuarioRepositoryAdapterTest {
                 .verify();
 
         verify(usuarioR2dbcRepository).findByEmail(email);
+    }
+
+    @Test
+    void deberiaControlarErrorEnExistePorDocumento() {
+        String documento = "1234567890";
+        RuntimeException excepcion = new RuntimeException("Error de conexión");
+
+        when(usuarioR2dbcRepository.existsByDocumentoIdentidad(documento)).thenReturn(Mono.error(excepcion));
+
+        Mono<Boolean> result = usuarioRepositoryAdapter.existePorDocumentoIdentidad(documento);
+
+        StepVerifier.create(result)
+                .expectError(RuntimeException.class)
+                .verify();
+
+        verify(usuarioR2dbcRepository).existsByDocumentoIdentidad(documento);
     }
 
     private Usuario crearUsuarioTest() {

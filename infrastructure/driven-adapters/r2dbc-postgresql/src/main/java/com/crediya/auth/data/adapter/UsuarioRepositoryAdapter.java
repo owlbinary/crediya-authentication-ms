@@ -54,6 +54,21 @@ public class UsuarioRepositoryAdapter implements UsuarioGateway {
     }
 
     @Override
+    public Mono<Boolean> existePorDocumentoIdentidad(String documentoIdentidad) {
+        log.debug("Verificando existencia de usuario por documento de identidad: {}", documentoIdentidad);
+
+        return usuarioR2dbcRepository.existsByDocumentoIdentidad(documentoIdentidad)
+            .doOnNext(existe -> {
+                String estado = Boolean.TRUE.equals(existe) ? "existe" : "no existe";
+                log.debug("Usuario con documento {}: {}", documentoIdentidad, estado);
+            })
+            .doOnError(excepcion -> 
+                log.error("Error en consulta de usuario por documento {}: {}", 
+                    documentoIdentidad, excepcion.getMessage())
+            );
+    }
+
+    @Override
     public Mono<Usuario> buscarPorEmail(String email) {
         log.debug("Consultando usuario por email: {}", email);
         

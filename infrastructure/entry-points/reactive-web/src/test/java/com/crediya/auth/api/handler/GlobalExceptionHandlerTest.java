@@ -25,6 +25,7 @@ import org.springframework.web.server.ServerWebExchange;
 import com.crediya.auth.api.constants.ErrorCodes;
 import com.crediya.auth.api.dto.response.ErrorResponse;
 import com.crediya.auth.model.exception.DatosInvalidosException;
+import com.crediya.auth.model.exception.DocumentoYaExisteException;
 import com.crediya.auth.model.exception.UsuarioYaExisteException;
 
 import jakarta.validation.ConstraintViolation;
@@ -117,6 +118,26 @@ class GlobalExceptionHandlerTest {
                     ErrorResponse errorResponse = response.getBody();
                     assertEquals(ErrorCodes.USUARIO_YA_EXISTE, errorResponse.getCodigo());
                     assertTrue(errorResponse.getMensaje().contains("test@test.com"));
+                    assertEquals("/api/v1/usuarios", errorResponse.getPath());
+                    assertNotNull(errorResponse.getTimestamp());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void deberiaControlarDocumentoYaExisteException() {
+        DocumentoYaExisteException ex = new DocumentoYaExisteException("1234567890");
+
+        Mono<ResponseEntity<ErrorResponse>> result = globalExceptionHandler.handleDocumentoYaExisteException(ex, exchange);
+
+        StepVerifier.create(result)
+                .assertNext(response -> {
+                    assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+                    assertNotNull(response.getBody());
+                    
+                    ErrorResponse errorResponse = response.getBody();
+                    assertEquals(ErrorCodes.USUARIO_YA_EXISTE, errorResponse.getCodigo());
+                    assertTrue(errorResponse.getMensaje().contains("1234567890"));
                     assertEquals("/api/v1/usuarios", errorResponse.getPath());
                     assertNotNull(errorResponse.getTimestamp());
                 })

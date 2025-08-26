@@ -26,6 +26,7 @@ public final class UsuarioConstants {
     public static final String ROL_REQUERIDO = "El ID del rol es obligatorio";
     public static final String ROL_POSITIVO_REQUERIDO = "El id_rol debe ser un número positivo";
     public static final String USUARIO_YA_EXISTE = "El usuario con email %s ya se encuentra registrado";
+    public static final String DOCUMENTO_YA_EXISTE = "El usuario con documento de identidad %s ya se encuentra registrado";
     public static final String CONTRASENA_OBLIGATORIA = "La contraseña es obligatoria";
     public static final String CONTRASENA_TAMANO_INVALIDO = "La contraseña debe tener entre 6 y 100 caracteres";
     public static final String DOCUMENTO_REQUERIDO = "El campo 'documento_identidad' es obligatorio";

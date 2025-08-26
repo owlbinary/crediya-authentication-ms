@@ -5,6 +5,7 @@ import com.crediya.auth.api.dto.response.ErrorResponse;
 import com.crediya.auth.model.exception.AccesoNoAutorizadoException;
 import com.crediya.auth.model.exception.CredencialesInvalidasException;
 import com.crediya.auth.model.exception.DatosInvalidosException;
+import com.crediya.auth.model.exception.DocumentoYaExisteException;
 import com.crediya.auth.model.exception.TokenInvalidoException;
 import com.crediya.auth.model.exception.UsuarioYaExisteException;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +72,22 @@ public class GlobalExceptionHandler {
             UsuarioYaExisteException ex, ServerWebExchange exchange) {
 
                 log.warn("Usuario ya existe: {}", ex.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .codigo(ErrorCodes.USUARIO_YA_EXISTE)
+                .mensaje(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(exchange.getRequest().getPath().value())
+                .build();
+
+        return Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse));
+    }
+
+    @ExceptionHandler(DocumentoYaExisteException.class)
+    public Mono<ResponseEntity<ErrorResponse>> handleDocumentoYaExisteException(
+            DocumentoYaExisteException ex, ServerWebExchange exchange) {
+
+        log.warn("Documento ya existe: {}", ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .codigo(ErrorCodes.USUARIO_YA_EXISTE)

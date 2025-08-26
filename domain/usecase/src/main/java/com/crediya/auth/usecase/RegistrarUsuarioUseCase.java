@@ -1,6 +1,7 @@
 package com.crediya.auth.usecase;
 
 import com.crediya.auth.model.Usuario;
+import com.crediya.auth.model.exception.DocumentoYaExisteException;
 import com.crediya.auth.model.exception.UsuarioYaExisteException;
 import com.crediya.auth.model.gateway.PasswordEncryptionGateway;
 import com.crediya.auth.model.gateway.UsuarioGateway;
@@ -17,6 +18,7 @@ public class RegistrarUsuarioUseCase {
 
     public Mono<Usuario> ejecutar(Usuario usuario) {
         return verificarEmailNoExiste(usuario.getEmail())
+                .then(verificarDocumentoNoExiste(usuario.getDocumentoIdentidad()))
                 .then(encriptarPasswordYAgregarFechas(usuario)
                         .flatMap(usuarioRepository::guardar));
     }
@@ -26,6 +28,16 @@ public class RegistrarUsuarioUseCase {
                 .flatMap(existe -> {
                     if (Boolean.TRUE.equals(existe)) {
                         return Mono.error(new UsuarioYaExisteException(email));
+                    }
+                    return Mono.empty();
+                });
+    }
+
+    private Mono<Void> verificarDocumentoNoExiste(String documentoIdentidad) {
+        return usuarioRepository.existePorDocumentoIdentidad(documentoIdentidad)
+                .flatMap(existe -> {
+                    if (Boolean.TRUE.equals(existe)) {
+                        return Mono.error(new DocumentoYaExisteException(documentoIdentidad));
                     }
                     return Mono.empty();
                 });
