@@ -57,8 +57,6 @@ public class RegistrarUsuarioRequest {
 
     @JsonProperty("salario_base")
     @NotNull(message = UsuarioConstants.SALARIO_BASE_REQUERIDO)
-    @DecimalMin(value = "0.01", message = UsuarioConstants.SALARIO_MINIMO_INVALIDO)
-    @DecimalMax(value = "15000000", message = UsuarioConstants.SALARIO_MAXIMO_INVALIDO)
     @Digits(integer = 10, fraction = 2, message = UsuarioConstants.SALARIO_FORMATO_INVALIDO)
     private BigDecimal salarioBase;
 }

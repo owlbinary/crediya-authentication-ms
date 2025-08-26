@@ -114,7 +114,7 @@ class RegistrarUsuarioRequestValidationTest {
         }
 
         @Test
-        void deberiaFallarCuandoSalarioBaseSuperaElMaximo() {
+        void deberiaPermitirSalarioBaseValido() {
 
                 RegistrarUsuarioRequest request = crearRequestValido().toBuilder()
                                 .salarioBase(new BigDecimal("15000001"))
@@ -122,9 +122,7 @@ class RegistrarUsuarioRequestValidationTest {
 
                 Set<ConstraintViolation<RegistrarUsuarioRequest>> violations = validator.validate(request);
 
-                assertFalse(violations.isEmpty());
-                assertTrue(violations.stream()
-                                .anyMatch(v -> v.getMessage().contains("15,000,000")));
+                assertTrue(violations.isEmpty());
         }
 
         @Test

@@ -17,10 +17,13 @@ public class RegistrarUsuarioUseCase {
     private final PasswordEncryptionGateway passwordEncryptionGateway;
 
     public Mono<Usuario> ejecutar(Usuario usuario) {
-        return verificarEmailNoExiste(usuario.getEmail())
-                .then(verificarDocumentoNoExiste(usuario.getDocumentoIdentidad()))
-                .then(encriptarPasswordYAgregarFechas(usuario)
-                        .flatMap(usuarioRepository::guardar));
+        return Mono.fromCallable(usuario::validarSalarioBase)
+                .flatMap(usuarioValidado -> 
+                    verificarEmailNoExiste(usuarioValidado.getEmail())
+                        .then(verificarDocumentoNoExiste(usuarioValidado.getDocumentoIdentidad()))
+                        .then(encriptarPasswordYAgregarFechas(usuarioValidado)
+                                .flatMap(usuarioRepository::guardar))
+                );
     }
 
     private Mono<Void> verificarEmailNoExiste(String email) {

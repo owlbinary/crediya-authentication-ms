@@ -1,6 +1,7 @@
 package com.crediya.auth.usecase;
 
 import com.crediya.auth.model.Usuario;
+import com.crediya.auth.model.exception.DatosInvalidosException;
 import com.crediya.auth.model.exception.DocumentoYaExisteException;
 import com.crediya.auth.model.exception.UsuarioYaExisteException;
 import com.crediya.auth.model.gateway.PasswordEncryptionGateway;
@@ -118,6 +119,24 @@ class RegistrarUsuarioUseCaseTest {
         
         StepVerifier.create(registrarUsuarioUseCase.ejecutar(usuario))
                 .expectError(DocumentoYaExisteException.class)
+                .verify();
+    }
+
+    @Test
+    void deberiaLlamarValidacionDelDominioYPropagErrorSiOcurre() {
+        Usuario usuarioConValidacionQueFalla = Usuario.builder()
+                .nombre("Juan")
+                .apellido("Sierra")
+                .email("test@test.com")
+                .password("password123")
+                .documentoIdentidad("12345678")
+                .telefono("3001234567")
+                .idRol(1L)
+                .salarioBase(new BigDecimal("20000000"))
+                .build();
+
+        StepVerifier.create(registrarUsuarioUseCase.ejecutar(usuarioConValidacionQueFalla))
+                .expectError(DatosInvalidosException.class)
                 .verify();
     }
 
