@@ -12,12 +12,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ValidacionDocumentoResponse {
 
-    @JsonProperty("documento_identidad")
-    private String documentoIdentidad;
-
     @JsonProperty("existe")
     private Boolean existe;
 
     @JsonProperty("mensaje")
     private String mensaje;
+
+    @JsonProperty("usuario")
+    private UsuarioResponse usuario;
 }

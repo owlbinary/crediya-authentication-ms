@@ -79,4 +79,16 @@ public class UsuarioRepositoryAdapter implements UsuarioGateway {
                 log.error("Error en consulta por email {}: {}", email, excepcion.getMessage())
             );
     }
+
+    @Override
+    public Mono<Usuario> buscarPorDocumentoIdentidad(String documentoIdentidad) {
+        log.debug("Consultando usuario por documento de identidad: {}", documentoIdentidad);
+        
+        return usuarioR2dbcRepository.findByDocumentoIdentidad(documentoIdentidad)
+            .map(usuarioMapper::toDomain)
+            .doOnNext(usuario -> log.debug("Usuario encontrado: {}", usuario.getEmail()))
+            .doOnError(excepcion -> 
+                log.error("Error en consulta por documento {}: {}", documentoIdentidad, excepcion.getMessage())
+            );
+    }
 }

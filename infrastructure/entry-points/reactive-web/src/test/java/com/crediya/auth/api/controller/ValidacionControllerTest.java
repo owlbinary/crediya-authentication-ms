@@ -1,6 +1,9 @@
 package com.crediya.auth.api.controller;
 
 import com.crediya.auth.api.dto.response.ValidacionDocumentoResponse;
+import com.crediya.auth.api.dto.response.UsuarioResponse;
+import com.crediya.auth.api.mapper.UsuarioDtoMapper;
+import com.crediya.auth.model.Usuario;
 import com.crediya.auth.usecase.ValidarDocumentoUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +19,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +29,9 @@ class ValidacionControllerTest {
 
     @Mock
     private ValidarDocumentoUseCase validarDocumentoUseCase;
+
+    @Mock
+    private UsuarioDtoMapper usuarioDtoMapper;
 
     @InjectMocks
     private ValidacionController validacionController;
@@ -42,6 +49,24 @@ class ValidacionControllerTest {
         String documentoIdentidad = "12345678";
         when(validarDocumentoUseCase.documentoExiste(documentoIdentidad))
                 .thenReturn(Mono.just(true));
+        
+        when(validarDocumentoUseCase.buscarUsuarioPorDocumento(documentoIdentidad))
+                .thenReturn(Mono.just(Usuario.builder()
+                        .idUsuario(1L)
+                        .nombre("Juan")
+                        .apellido("Perez")
+                        .email("juan@test.com")
+                        .documentoIdentidad(documentoIdentidad)
+                        .build()));
+                        
+        when(usuarioDtoMapper.toResponse(any(Usuario.class)))
+                .thenReturn(UsuarioResponse.builder()
+                        .idUsuario(1L)
+                        .nombre("Juan")
+                        .apellido("Perez")
+                        .email("juan@test.com")
+                        .documentoIdentidad(documentoIdentidad)
+                        .build());
 
         webTestClient.get()
                 .uri("/api/v1/validaciones/documento/{documentoIdentidad}", documentoIdentidad)
@@ -51,9 +76,10 @@ class ValidacionControllerTest {
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody(ValidacionDocumentoResponse.class)
                 .value(response -> {
-                    assert response.getDocumentoIdentidad().equals(documentoIdentidad);
                     assert response.getExiste().equals(true);
                     assert response.getMensaje().equals("El documento existe, puede continuar con el proceso");
+                    assert response.getUsuario() != null;
+                    assert response.getUsuario().getIdUsuario().equals(1L);
                 });
     }
 
@@ -72,7 +98,6 @@ class ValidacionControllerTest {
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody(ValidacionDocumentoResponse.class)
                 .value(response -> {
-                    assert response.getDocumentoIdentidad().equals(documentoIdentidad);
                     assert response.getExiste().equals(false);
                     assert response.getMensaje().equals("El documento no existe, debe realizar la creación del usuario para continuar con el proceso");
                 });
@@ -88,8 +113,7 @@ class ValidacionControllerTest {
         Mono<ValidacionDocumentoResponse> resultado = validacionController.validarDocumento(documentoIdentidad);
 
         StepVerifier.create(resultado)
-                .expectNextMatches(response -> 
-                        response.getDocumentoIdentidad().equals(documentoIdentidad) &&
+                .expectNextMatches(response ->
                         response.getExiste().equals(false) &&
                         response.getMensaje().equals("El documento no existe, debe realizar la creación del usuario para continuar con el proceso"))
                 .verifyComplete();
@@ -101,6 +125,24 @@ class ValidacionControllerTest {
     void deberiaValidarDocumentosConDiferentesFormatos(String documentoIdentidad) {
         when(validarDocumentoUseCase.documentoExiste(documentoIdentidad))
                 .thenReturn(Mono.just(true));
+        
+        when(validarDocumentoUseCase.buscarUsuarioPorDocumento(documentoIdentidad))
+                .thenReturn(Mono.just(Usuario.builder()
+                        .idUsuario(1L)
+                        .nombre("Test")
+                        .apellido("User")
+                        .email("test@test.com")
+                        .documentoIdentidad(documentoIdentidad)
+                        .build()));
+                        
+        when(usuarioDtoMapper.toResponse(any(Usuario.class)))
+                .thenReturn(UsuarioResponse.builder()
+                        .idUsuario(1L)
+                        .nombre("Test")
+                        .apellido("User")
+                        .email("test@test.com")
+                        .documentoIdentidad(documentoIdentidad)
+                        .build());
 
         webTestClient.get()
                 .uri("/api/v1/validaciones/documento/{documentoIdentidad}", documentoIdentidad)
@@ -109,7 +151,6 @@ class ValidacionControllerTest {
                 .expectStatus().isOk()
                 .expectBody(ValidacionDocumentoResponse.class)
                 .value(response -> {
-                    assert response.getDocumentoIdentidad().equals(documentoIdentidad);
                     assert response.getExiste().equals(true);
                 });
     }
@@ -142,7 +183,6 @@ class ValidacionControllerTest {
                 .expectStatus().isOk()
                 .expectBody(ValidacionDocumentoResponse.class)
                 .value(response -> {
-                    assert response.getDocumentoIdentidad().equals(documentoIdentidad);
                     assert response.getExiste().equals(false);
                 });
     }
@@ -153,6 +193,28 @@ class ValidacionControllerTest {
         String documentoIdentidad = "12345678";
         when(validarDocumentoUseCase.documentoExiste(documentoIdentidad))
                 .thenReturn(Mono.just(true));
+        
+        Usuario usuario = Usuario.builder()
+                .idUsuario(1L)
+                .documentoIdentidad(documentoIdentidad)
+                .nombre("Juan")
+                .apellido("Pérez")
+                .email("juan.perez@email.com")
+                .build();
+        
+        when(validarDocumentoUseCase.buscarUsuarioPorDocumento(documentoIdentidad))
+                .thenReturn(Mono.just(usuario));
+        
+        UsuarioResponse usuarioResponse = UsuarioResponse.builder()
+                .idUsuario(1L)
+                .documentoIdentidad(documentoIdentidad)
+                .nombre("Juan")
+                .apellido("Pérez")
+                .email("juan.perez@email.com")
+                .build();
+        
+        when(usuarioDtoMapper.toResponse(usuario))
+                .thenReturn(usuarioResponse);
 
         webTestClient.get()
                 .uri("/api/v1/validaciones/documento/{documentoIdentidad}", documentoIdentidad)
@@ -160,7 +222,6 @@ class ValidacionControllerTest {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
-                .jsonPath("$.documento_identidad").isEqualTo(documentoIdentidad)
                 .jsonPath("$.existe").isEqualTo(true)
                 .jsonPath("$.mensaje").isEqualTo("El documento existe, puede continuar con el proceso");
     }

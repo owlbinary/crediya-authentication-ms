@@ -1,6 +1,7 @@
 package com.crediya.auth.api.controller;
 
 import com.crediya.auth.api.dto.response.ValidacionDocumentoResponse;
+import com.crediya.auth.api.mapper.UsuarioDtoMapper;
 import com.crediya.auth.api.validation.ValidDocumentoIdentidad;
 import com.crediya.auth.usecase.ValidarDocumentoUseCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,11 +31,12 @@ import reactor.core.publisher.Mono;
 public class ValidacionController {
 
     private final ValidarDocumentoUseCase validarDocumentoUseCase;
+    private final UsuarioDtoMapper usuarioDtoMapper;
 
     @GetMapping(value = "/documento/{documentoIdentidad}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('ADMIN') or hasRole('ASESOR')")
     @Operation(summary = "Validar existencia de documento de identidad", 
-               description = "Valida si un documento de identidad existe en el sistema para determinar si puede continuar con el proceso o debe crear el usuario primero")
+               description = "Valida si un documento de identidad existe en el sistema para determinar si puede continuar con el proceso o debe crear el usuario primero. Si el usuario existe, incluye la información detallada del mismo.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Validación realizada exitosamente", 
                     content = @Content(schema = @Schema(implementation = ValidacionDocumentoResponse.class))),
@@ -50,16 +52,36 @@ public class ValidacionController {
         log.info("Validando existencia del documento: {}", documentoIdentidad);
         
         return validarDocumentoUseCase.documentoExiste(documentoIdentidad)
-                .map(existe -> {
-                    final String mensaje = Boolean.TRUE.equals(existe) ? 
-                            "El documento existe, puede continuar con el proceso" : 
-                            "El documento no existe, debe realizar la creación del usuario para continuar con el proceso";
-                    
-                    return ValidacionDocumentoResponse.builder()
-                            .documentoIdentidad(documentoIdentidad)
-                            .existe(existe)
-                            .mensaje(mensaje)
-                            .build();
+                .flatMap(existe -> {
+                    if (Boolean.TRUE.equals(existe)) {
+                        return validarDocumentoUseCase.buscarUsuarioPorDocumento(documentoIdentidad)
+                                .map(usuario -> {
+                                    final String mensaje = "El documento existe, puede continuar con el proceso";
+                                    
+                                    return ValidacionDocumentoResponse.builder()
+                                            .existe(true)
+                                            .mensaje(mensaje)
+                                            .usuario(usuarioDtoMapper.toResponse(usuario))
+                                            .build();
+                                })
+                                .switchIfEmpty(Mono.fromCallable(() -> {
+                                    final String mensaje = "El documento existe, puede continuar con el proceso";
+                                    
+                                    return ValidacionDocumentoResponse.builder()
+                                            .existe(true)
+                                            .mensaje(mensaje)
+                                            .usuario(null)
+                                            .build();
+                                }));
+                    } else {
+                        final String mensaje = "El documento no existe, debe realizar la creación del usuario para continuar con el proceso";
+                        
+                        return Mono.just(ValidacionDocumentoResponse.builder()
+                                .existe(false)
+                                .mensaje(mensaje)
+                                .usuario(null)
+                                .build());
+                    }
                 })
                 .doOnSuccess(response -> log.info("Validación de documento {} completada: existe={}", 
                         documentoIdentidad, response.getExiste()))
