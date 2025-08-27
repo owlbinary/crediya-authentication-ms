@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,12 +32,15 @@ public class ValidacionController {
     private final ValidarDocumentoUseCase validarDocumentoUseCase;
 
     @GetMapping(value = "/documento/{documentoIdentidad}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ASESOR')")
     @Operation(summary = "Validar existencia de documento de identidad", 
                description = "Valida si un documento de identidad existe en el sistema para determinar si puede continuar con el proceso o debe crear el usuario primero")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Validación realizada exitosamente", 
                     content = @Content(schema = @Schema(implementation = ValidacionDocumentoResponse.class))),
         @ApiResponse(responseCode = "400", description = "Formato de documento inválido"),
+        @ApiResponse(responseCode = "401", description = "No autenticado"),
+        @ApiResponse(responseCode = "403", description = "No autorizado - Requiere rol ADMIN o ASESOR"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     public Mono<ValidacionDocumentoResponse> validarDocumento(

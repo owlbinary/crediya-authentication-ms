@@ -7,6 +7,8 @@ public final class ErrorCodes {
     public static final String ERROR_INTERNO = "ERROR_INTERNO";
     public static final String VALIDACION_FALLIDA = "VALIDACION_FALLIDA";
     public static final String USUARIO_YA_EXISTE = "USUARIO_YA_EXISTE";
+    public static final String ACCESO_NO_AUTORIZADO = "ACCESO_NO_AUTORIZADO";
+    public static final String ACCESO_NO_AUTORIZADO_MENSAJE = "No tiene permisos para acceder a este recurso";
     public static final String ERROR_INTERNO_MENSAJE = "Ha ocurrido un error interno. Por favor, intente más tarde.";
     
     private ErrorCodes() {

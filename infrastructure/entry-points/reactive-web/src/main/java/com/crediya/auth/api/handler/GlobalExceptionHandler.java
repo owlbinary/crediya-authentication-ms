@@ -11,6 +11,7 @@ import com.crediya.auth.model.exception.UsuarioYaExisteException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -145,6 +146,22 @@ public class GlobalExceptionHandler {
                 .build();
 
         return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public Mono<ResponseEntity<ErrorResponse>> handleAccessDeniedException(
+            AccessDeniedException ex, ServerWebExchange exchange) {
+
+        log.warn("Acceso denegado por falta de permisos: {}", ex.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .codigo(ErrorCodes.ACCESO_NO_AUTORIZADO)
+                .mensaje(ErrorCodes.ACCESO_NO_AUTORIZADO_MENSAJE)
+                .timestamp(LocalDateTime.now())
+                .path(exchange.getRequest().getPath().value())
+                .build();
+
+        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));
     }
 
     @ExceptionHandler(AccesoNoAutorizadoException.class)
