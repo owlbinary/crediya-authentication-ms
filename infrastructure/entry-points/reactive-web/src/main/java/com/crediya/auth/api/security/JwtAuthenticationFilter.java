@@ -63,7 +63,11 @@ public class JwtAuthenticationFilter implements WebFilter {
         return validarTokenUseCase.ejecutar(token)
                 .map(this::createAuthentication)
                 .doOnError(error -> 
-                    log.debug("Error al validar token: {}", error.getMessage()));
+                    log.debug("Error al validar token: {}", error.getMessage()))
+                .onErrorResume(error -> {
+                    log.debug("Token inválido o expirado, continuando sin autenticación");
+                    return Mono.empty();
+                });
     }
     
     private UsernamePasswordAuthenticationToken createAuthentication(UsuarioAutenticado usuario) {

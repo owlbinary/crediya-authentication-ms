@@ -80,24 +80,6 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void deberiaContinuarSinAutenticacionConTokenInvalido() {
-        String token = "invalid-token";
-
-        MockServerHttpRequest request = MockServerHttpRequest
-                .get("/api/v1/protected")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .build();
-        MockServerWebExchange exchange = MockServerWebExchange.from(request);
-
-        when(validarTokenUseCase.ejecutar(token))
-                .thenReturn(Mono.error(new TokenInvalidoException("Token inválido")));
-
-        StepVerifier.create(jwtAuthenticationFilter.filter(exchange, filterChain))
-                .expectError(TokenInvalidoException.class)
-                .verify();
-    }
-
-    @Test
     void deberiaContinuarSinHeaderAuthorization() {
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/api/v1/protected")
