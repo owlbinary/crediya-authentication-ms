@@ -93,9 +93,15 @@ public class JwtAuthenticationFilter implements WebFilter {
     
     private boolean isPublicEndpoint(String path) {
         return path.equals("/api/v1/login") ||
+               path.startsWith("/actuator") ||
+               path.startsWith("/auth/actuator") ||
                path.startsWith("/swagger-ui") ||
+               path.startsWith("/auth/swagger-ui") ||
                path.startsWith("/v3/api-docs") ||
+               path.startsWith("/auth/v3/api-docs") ||
                path.startsWith("/webjars") ||
-               path.equals("/swagger-ui.html");
+               path.startsWith("/auth/webjars") ||
+               path.equals("/swagger-ui.html") ||
+               path.equals("/auth/swagger-ui.html");
     }
 }
